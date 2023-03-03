@@ -8,7 +8,7 @@ from sqlalchemy.orm import relationship
 from flask_login import UserMixin, login_user, LoginManager, login_required, current_user, logout_user
 from forms import CreatePostForm, RegisterForm, Login_form, Comments
 from flask_gravatar import Gravatar
-
+import os
 from functools import wraps
 from flask import abort
 
@@ -22,10 +22,9 @@ login_manager = LoginManager()
 login_manager.init_app(app)
 
 ##CONNECT TO DB
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///blog.db'
+app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get("DATABASE_URL", 'sqlite:///blog.db')
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 db = SQLAlchemy(app)
-
 
 ##CONFIGURE TABLES
 class Users(db.Model, UserMixin):
@@ -141,7 +140,6 @@ def logout():
 
 
 @app.route("/post/<int:post_id>", methods=["GET", "POST"])
-@login_required
 def show_post(post_id):
     form = Comments()
     requested_post = BlogPost.query.get(post_id)
@@ -174,7 +172,6 @@ def contact():
 
 @app.route("/new-post", methods=["GET", "POST"])
 @login_required
-@admin_only
 def add_new_post():
     form = CreatePostForm()
     if form.validate_on_submit():
